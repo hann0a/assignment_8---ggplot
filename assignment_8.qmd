@@ -1,0 +1,91 @@
+---
+title: "Assignemnt 8 - ggplot"
+author:
+  name: Hanna Milnikel
+  date: 05.05.2025 
+format:
+  html:
+      embed-resources: true
+      self-contained-math: true
+
+editor: visual
+---
+
+## Improving "bad plot" using ggplot
+
+![](images/bad_plot.png)
+
+#### What should be changed
+
+This bar chart that „The Times” published definitely has some issues. Firstly most of the bars are labeled with a “0,” but at the top we see different value (of projected deaths)- it’s really confusing. It would be clearer to only label bars with values greater than zero. But if most values are zero or one the bar chart isn’t the best option (maybe a heatmap would be better). Whats more, neither the y-axis nor the x-axis have a label and a unit. Also the year 2020 appears as „20” and year 2021 doesn’t have a line to a specific bar - it might create misunderstanding. Another issue to me are the colors used for "Projected" (gold) is much more eye-catching than the muted blue for actual reported data. This implies that the projection is much more important than actual deaths, which is misleading. It would be better to use more neutral, balanced colors for comparison (shades of the same hue: dark green for reported, light green for projected).
+
+To me the chart appears dramatic, with peaks and the intensive color, but the actual values are very small — mostly 0 to 3 deaths per year. This could mislead viewers and exaggerate the perceived scale of the problem. 
+
+#### Step by step explanation how to create plots using ggplot
+
+Firstly attach all needed packages:
+
+-   `library(tidyr)` - reshaping data - I used it for `pivot_longer()`
+
+-   `library(dplyr)` – data manipulation - all tools such as `filter()`
+
+-   `ggplot2` - creating various plots
+
+```{r}
+#| warning: false
+library("tidyr")
+library("dplyr")
+library("ggplot2")
+```
+
+I created a csv file containg data for my plot and using function `read.csv2` I imported it to my Quarto file. Then using `pivot_longer` I created a table data_long with 3 columns - 'Type' , 'Count', and 'Year'.
+
+```{r}
+data <- read.csv2('data.csv')
+data_long <- pivot_longer(data, cols=c('Projected', 'Reported'), names_to = 'Type', values_to = 'Count')
+#View(data_long)
+```
+
+#### Bar plot
+
+Here using ggplot I created a bar plot using data from table - `data_long`.
+
+-   aes(x=Year,y=Count, fill=Type) - specify values of each axis
+
+    -   `fill=Type` - here I created two variables from column 'Type' (because I want a stacked bar plot)
+
+-   `geom_bar(stat = "identity")` - ggplot automatically calculates values for each 'Year' so if you want to use your own data add this line
+
+-   `scale_fill_manual()` - here I manually specify colors for each variable
+
+-   `labs()` - write title of plot, legend, names of each axis
+
+-   `theme_minimal()` - it's a style of plots. This function deletes grey background and generally makes the plot clearer
+
+```{r}
+ggplot(data = data_long, aes(x=Year,y=Count, fill=Type))+
+  geom_bar(stat = "identity")+
+  scale_fill_manual(values = c("Reported" = "seagreen","Projected" = "palegreen3"))+
+  labs(title = "Student death after taking the the drug ketamine (1999-2021)",
+       x = "Year", y = "Number of deaths", fill = "Type") +
+  theme_minimal()
+```
+
+#### Heatmap
+
+Here I created a heatmap that also is suitable to represent `data_long`. Most of this chunk is similar to the previous one but there are some differences:
+
+-   `aes(x=Year,y=Type, fill=Count)` - I changed values of axis because I want 'Count' to be the gradient of the heatmap
+
+-   geom_tile(color='grey') - here I create tiles of heatmap and choose grey for borders (color of each tile depends on `fill = Count`)
+
+-   `scale_fill_gradientn(colors = RColorBrewer::brewer.pal(9, "YlOrRd"))` - I choose a color palette and because the differences between each value are tiny I want the palette to be contrasting
+
+```{r}
+ggplot(data = data_long, aes(x=Year,y=Type, fill=Count))+
+  geom_tile(color='grey')+
+  scale_fill_gradientn(colors = RColorBrewer::brewer.pal(9, "YlOrRd"))+
+  labs(title = "Student death after taking the the drug ketamine (1999-2021)",
+       x = "Year", y = "Type", fill = "Number of deaths")+
+  theme_minimal()
+```
