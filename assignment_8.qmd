@@ -7,6 +7,7 @@ format:
   html:
       embed-resources: true
       self-contained-math: true
+      self-contained: true
 
 editor: visual
 ---
